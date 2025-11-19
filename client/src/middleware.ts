@@ -1,7 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
 import jwt from "jsonwebtoken";
 
-const PUBLIC_ROUTES = ['/Login', '/register', '/api/auth/login', '/api/auth/register'];
+const PUBLIC_ROUTES = ['/login', '/register'];
 
 export const onRequest = defineMiddleware(async (context, next) => {
     const { request, cookies, redirect, url } = context;
@@ -13,7 +13,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const token = cookies.get("token")?.value;
 
     if (!token) {
-        return redirect("/Login");
+        return redirect("/login");
     }
 
     try {
@@ -21,6 +21,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
         context.locals.user = decoded;
         return next();
     } catch (error) {
-        return redirect("/Login");
+        return redirect("/login");
     }
 });

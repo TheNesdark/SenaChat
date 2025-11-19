@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, BadRequestException, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, CreateUserDtoSchema, validateUniqueEmail } from './dto/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -31,7 +31,11 @@ export class UsersController {
     @Get()
     async findOne(@Query('email') email: string) {
         if (email) {
-            return this.usersService.findOneByEmail(email);
+            const user = await this.usersService.findOneByEmail(email);
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+            return user;
         }
         return this.usersService.findAll();
     }

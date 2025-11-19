@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
+interface User {
+    id: number;
+    name: string;
+    email: string;
+}
+
 export default function UserList() {
-    const [users, setUsers] = useState<any[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
 
     useEffect(() => {
         fetch("http://localhost:3000/users")

@@ -1,3 +1,16 @@
+---
+import { actions } from 'astro:actions';
+import { isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.register);
+
+if (result && !result.error) {
+  return Astro.redirect('/login');
+}
+
+const inputErrors = result?.error && isInputError(result.error) ? result.error.fields : {};
+---
+
 <!doctype html>
 <html lang="en">
 	<head>
@@ -9,49 +22,27 @@
 	<body>
 		<section class="register">
             <h1>Register</h1>
-			<form class="register-form" id="registerForm">
+			<form class="register-form" method="POST" action={actions.register}>
                 <label for="name">Name</label>
-				<input type="text" id="name" name="name" required />
+				<input type="text" id="name" name="name" required aria-describedby="name-error" />
+                {inputErrors.name && <p id="name-error" style="color: red; font-size: 0.8em;">{inputErrors.name.join(', ')}</p>}
+
 				<label for="email">Email</label>
-				<input type="email" id="email" name="email" required />
+				<input type="email" id="email" name="email" required aria-describedby="email-error" />
+                {inputErrors.email && <p id="email-error" style="color: red; font-size: 0.8em;">{inputErrors.email.join(', ')}</p>}
+
 				<label for="password">Password</label>
-				<input type="password" id="password" name="password" required />
+				<input type="password" id="password" name="password" required aria-describedby="password-error" />
+                {inputErrors.password && <p id="password-error" style="color: red; font-size: 0.8em;">{inputErrors.password.join(', ')}</p>}
+
 				<button type="submit">Register</button>
-                <p id="error-message" style="color: red; display: none;"></p>
+                
+                {result?.error && !isInputError(result.error) && (
+                    <p style="color: red; margin-top: 10px;">{result.error.message}</p>
+                )}
 			</form>
-            <p class="login-register">Already have an account? <a href="/Login">Login</a></p>
+            <p class="login-register">Already have an account? <a href="/login">Login</a></p>
 		</section>
-        <script>
-            const form = document.getElementById('registerForm');
-            const errorMessage = document.getElementById('error-message');
-
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData);
-
-                try {
-                    const response = await fetch('/api/auth/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data),
-                    });
-
-                    if (response.ok) {
-                        window.location.href = '/Login';
-                    } else {
-                        const result = await response.json();
-                        errorMessage.textContent = result.message || 'Registration failed';
-                        errorMessage.style.display = 'block';
-                    }
-                } catch (error) {
-                    errorMessage.textContent = 'An error occurred';
-                    errorMessage.style.display = 'block';
-                }
-            });
-        </script>
 	</body>
 </html>
 

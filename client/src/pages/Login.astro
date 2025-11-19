@@ -1,3 +1,16 @@
+---
+import { actions } from 'astro:actions';
+import { isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.login);
+
+if (result && !result.error) {
+  return Astro.redirect('/');
+}
+
+const inputErrors = result?.error && isInputError(result.error) ? result.error.fields : {};
+---
+
 <!doctype html>
 <html lang="en">
 	<head>
@@ -5,52 +18,28 @@
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<title>Login - SenaChat</title>
 	</head>
 	<body>
 		<section class="login">
             <h1>Login</h1>
-			<form class="login-form" id="loginForm">
+			<form class="login-form" method="POST" action={actions.login}>
 				<label for="email">Email</label>
-				<input type="email" id="email" name="email" required />
+				<input type="email" id="email" name="email" required aria-describedby="email-error" />
+                {inputErrors.email && <p id="email-error" style="color: red; font-size: 0.8em;">{inputErrors.email.join(', ')}</p>}
+
 				<label for="password">Password</label>
-				<input type="password" id="password" name="password" required />
+				<input type="password" id="password" name="password" required aria-describedby="password-error" />
+                {inputErrors.password && <p id="password-error" style="color: red; font-size: 0.8em;">{inputErrors.password.join(', ')}</p>}
+
 				<button type="submit">Login</button>
-                <p id="error-message" style="color: red; display: none;"></p>
+                
+                {result?.error && !isInputError(result.error) && (
+                    <p style="color: red; margin-top: 10px;">{result.error.message}</p>
+                )}
 			</form>
             <p class="login-register">Don't have an account? <a href="/register">Register</a></p>
 		</section>
-        <script>
-            const form = document.getElementById('loginForm');
-            const errorMessage = document.getElementById('error-message');
-
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData);
-
-                try {
-                    const response = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data),
-                    });
-
-                    if (response.ok) {
-                        window.location.href = '/'; // Redirect to home
-                    } else {
-                        const result = await response.json();
-                        errorMessage.textContent = result.message || 'Login failed';
-                        errorMessage.style.display = 'block';
-                    }
-                } catch (error) {
-                    errorMessage.textContent = 'An error occurred';
-                    errorMessage.style.display = 'block';
-                }
-            });
-        </script>
 	</body>
 </html>
 
