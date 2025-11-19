@@ -4,24 +4,25 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<title>Register - SenaChat</title>
 	</head>
 	<body>
-		<section class="login">
-            <h1>Login</h1>
-			<form class="login-form" id="loginForm">
+		<section class="register">
+            <h1>Register</h1>
+			<form class="register-form" id="registerForm">
+                <label for="name">Name</label>
+				<input type="text" id="name" name="name" required />
 				<label for="email">Email</label>
 				<input type="email" id="email" name="email" required />
 				<label for="password">Password</label>
 				<input type="password" id="password" name="password" required />
-				<button type="submit">Login</button>
+				<button type="submit">Register</button>
                 <p id="error-message" style="color: red; display: none;"></p>
 			</form>
-            <p class="login-register">Don't have an account? <a href="/register">Register</a></p>
+            <p class="login-register">Already have an account? <a href="/Login">Login</a></p>
 		</section>
         <script>
-            const form = document.getElementById('loginForm');
+            const form = document.getElementById('registerForm');
             const errorMessage = document.getElementById('error-message');
 
             form.addEventListener('submit', async (e) => {
@@ -30,7 +31,7 @@
                 const data = Object.fromEntries(formData);
 
                 try {
-                    const response = await fetch('/api/auth/login', {
+                    const response = await fetch('/api/auth/register', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -39,10 +40,10 @@
                     });
 
                     if (response.ok) {
-                        window.location.href = '/'; // Redirect to home
+                        window.location.href = '/Login';
                     } else {
                         const result = await response.json();
-                        errorMessage.textContent = result.message || 'Login failed';
+                        errorMessage.textContent = result.message || 'Registration failed';
                         errorMessage.style.display = 'block';
                     }
                 } catch (error) {
@@ -63,21 +64,26 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+        font-family: system-ui, sans-serif;
 	}
 
-    .login-form {
+    .register-form {
         display: flex;
         flex-direction: column;
         justify-content: center;
+        width: 300px;
     }
-    .login-form label {
+    .register-form label {
         margin-top: 10px;
     }
-    .login-form button {
-        margin-top: 10px;
+    .register-form button {
+        margin-top: 20px;
+        padding: 10px;
+        cursor: pointer;
     }
 
     .login-register {
         margin-top: 10px;
+        text-align: center;
     }
 </style>
