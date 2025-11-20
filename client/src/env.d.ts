@@ -2,6 +2,12 @@
 
 declare namespace App {
     interface Locals {
-        user?: any;
+        user?: {
+            id: number;
+            name: string;
+            email: string;
+            iat: number;
+            exp: number;
+        };
     }
 }

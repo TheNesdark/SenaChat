@@ -8,10 +8,10 @@ export const server = {
         accept: 'form',
         input: z.object({
             name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
-            email: z.string().email("Invalid email address"),
-            password: z.string().min(6, "Password must be at least 6 characters"),
+            email: z.string().email("Email inválido"),
+            password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
         }),
-        handler: async (input) => {
+        handler: async (input, context) => {
             try {
                 const response = await fetch('http://localhost:3000/users', {
                     method: 'POST',
@@ -27,43 +27,7 @@ export const server = {
                     throw new Error(data.message || 'Registration failed');
                 }
 
-                return data;
-            } catch (error) {
-                if (error instanceof Error) {
-                    throw new Error(error.message);
-                }
-                throw new Error('An unexpected error occurred');
-            }
-        },
-    }),
-    login: defineAction({
-        accept: 'form',
-        input: z.object({
-            email: z.string().email("Invalid email address"),
-            password: z.string().min(1, "Password is required"),
-        }),
-        handler: async ({ email, password }, context) => {
-            try {
-                const response = await fetch(`http://localhost:3000/users?email=${email}`);
-
-                if (!response.ok) {
-                    throw new Error('Invalid credentials');
-                }
-
-                const users = await response.json();
-                const user = Array.isArray(users) ? users[0] : users;
-
-                if (!user) {
-                    throw new Error('Invalid credentials');
-                }
-
-                const isMatch = await bcrypt.compare(password, user.password);
-
-                if (!isMatch) {
-                    throw new Error('Invalid credentials');
-                }
-
-                const token = jwt.sign({ id: user.id, email: user.email }, 'secretKey', {
+                const token = jwt.sign({ id: data.id, name: data.name, email: data.email }, 'secretKey', {
                     expiresIn: '1h',
                 });
 
@@ -81,6 +45,60 @@ export const server = {
                 }
                 throw new Error('An unexpected error occurred');
             }
+        },
+    }),
+    login: defineAction({
+        accept: 'form',
+        input: z.object({
+            email: z.string().email("Email inválido"),
+            password: z.string().min(1, "La contraseña es requerida"),
+        }),
+        handler: async ({ email, password }, context) => {
+            try {
+                const response = await fetch(`http://localhost:3000/users?email=${email}`);
+
+                if (!response.ok) {
+                    throw new Error('Credenciales inválidas');
+                }
+
+                const users = await response.json();
+                const user = Array.isArray(users) ? users[0] : users;
+
+                if (!user) {
+                    throw new Error('Credenciales inválidas');
+                }
+
+                const isMatch = await bcrypt.compare(password, user.password);
+
+                if (!isMatch) {
+                    throw new Error('Credenciales inválidas');
+                }
+
+                const token = jwt.sign({ id: user.id, name: user.name, email: user.email }, 'secretKey', {
+                    expiresIn: '1h',
+                });
+
+                context.cookies.set('token', token, {
+                    httpOnly: true,
+                    secure: false,
+                    path: '/',
+                    maxAge: 3600,
+                });
+
+                return { success: true };
+            } catch (error) {
+                if (error instanceof Error) {
+                    throw new Error(error.message);
+                }
+                throw new Error('An unexpected error occurred');
+            }
+        },
+    }),
+    logout: defineAction({
+        accept: 'form',
+        handler: async (_, context) => {
+            context.cookies.delete('token');
+            return { success: true };
         },
     }),
 };
